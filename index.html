@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#071a35">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="style.css">
+<title>⑤-A 日本株総合評価</title>
+</head>
+<body>
+<div id="lock" class="lock-screen">
+  <div class="lock-card">
+    <div class="lock-symbol">⑤-A</div>
+    <h1>日本株 総合評価</h1>
+    <p>PC版で作成・暗号化されたランキングデータを閲覧します。</p>
+    <label for="password">閲覧パスワード</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="閲覧パスワード">
+    <button id="unlock" class="primary">データを開く</button>
+    <p class="muted">パスワードは端末に保存しません。株価・決算の更新処理はPC版で実行します。</p>
+    <div id="loginError" role="alert" class="error"></div>
+  </div>
+</div>
+<main id="app" class="hidden">
+  <header class="app-header">
+    <div class="header-kicker">⑤-A 日本株</div>
+    <div class="header-main"><strong>総合評価システム</strong><button id="logout" class="head-action">ロック</button></div>
+    <div id="meta" class="header-meta"></div>
+  </header>
+  <div class="app-body">
+    <section id="pane-home" class="pane">
+      <h1>銘柄分析</h1>
+      <p class="subhead">業種構造に合った分析を選択します。</p>
+      <button id="goGeneral" class="category-card general"><span class="category-icon">▥</span><span><b>一般企業</b><small>既存150社の総合分析</small></span><span class="status ok">稼働中</span><span class="chevron">›</span></button>
+      <button id="goRealestate" class="category-card estate"><span class="category-icon">▦</span><span><b>不動産</b><small>現在は既存150社内の不動産だけ表示</small></span><span class="status partial">一部対応</span><span class="chevron">›</span></button>
+      <button id="goFinance" class="category-card finance"><span class="category-icon">▤</span><span><b>金融</b><small>銀行・証券・保険は⑤-Bの別分析</small></span><span class="status pending">未完成</span><span class="chevron">›</span></button>
+      <div class="notice">不動産の特殊な財務分析と金融専用分析は未完成です。実装済みでない採点・判断は行いません。</div>
+      <h2>現在の保存済みデータ</h2>
+      <div id="homeSummary" class="summary-grid"></div>
+      <button class="wide-btn secondary" data-goto="update">保存日時・更新状況を確認 ›</button>
+    </section>
+
+    <section id="pane-ranking" class="pane hidden">
+      <div class="title-row"><h1 id="rankingTitle">一般企業 分析</h1><span class="status ok" id="rankingStatus">稼働中</span></div>
+      <p class="subhead">PCで評価済みの150社を表示します。端末の重み調整は表示だけに反映します。</p>
+      <div id="rankingSummary" class="summary-grid"></div>
+      <div class="toolbar">
+        <input id="search" type="search" placeholder="銘柄名・コードで検索" aria-label="銘柄検索">
+        <select id="rating" aria-label="総合評価"><option value="">評価すべて</option><option>優良</option><option>良好</option><option>中立</option><option>注意</option><option>警戒</option><option>評価不足</option></select>
+      </div>
+      <div class="toolbar">
+        <select id="industry" aria-label="業種"><option value="">全業種</option></select>
+        <select id="theme" aria-label="テーマ"><option value="">全テーマ</option></select>
+      </div>
+      <details class="panel"><summary>追加フィルター</summary>
+        <label>総合点の下限 <input id="minScore" type="number" min="0" max="100" value="0"></label>
+        <label>正式評価に必要なカバー率 <input id="minCoverage" type="number" min="0" max="100" value="60"></label>
+        <label class="check"><input id="officialOnly" type="checkbox">正式順位のみ表示</label>
+        <label class="check"><input id="hideWarning" type="checkbox">警戒ありを非表示</label>
+        <div id="axisFilters" class="axis-filters"></div>
+      </details>
+      <div class="result-bar"><span id="resultCount">--</span><label>表示数 <select id="limit"><option>20</option><option>50</option><option>100</option><option>150</option></select></label></div>
+      <div id="results"></div>
+    </section>
+
+    <section id="pane-list" class="pane hidden">
+      <h1>150社一覧</h1><p class="subhead">銘柄名を選択すると実データの詳細画面が開きます。</p>
+      <input id="listSearch" type="search" placeholder="銘柄名・コードを検索">
+      <div id="listResults" class="list-results"></div>
+    </section>
+
+    <section id="pane-detail" class="pane hidden">
+      <button class="back-link" id="backDetail">‹ 一覧に戻る</button>
+      <div id="stockDetail"></div>
+    </section>
+
+    <section id="pane-sector" class="pane hidden">
+      <h1>セクター比較</h1><p class="subhead">保存済み150社の表示スコアを業種別に集計します。市場全体の順位ではありません。</p>
+      <div id="sectorResults" class="sector-results"></div>
+    </section>
+
+    <section id="pane-settings" class="pane hidden">
+      <h1>表示設定・プリセット</h1>
+      <div class="notice">携帯の設定はこの端末に保存し、携帯内の表示順位だけを変更します。PCの正式150社・IR記録・設定ファイルは変更しません。</div>
+      <div class="panel"><h2>プリセットを読み込む</h2><div id="presetButtons" class="preset-grid"></div>
+      <button id="resetDefault" class="wide-btn secondary">基本設定に戻す（携帯のみ）</button></div>
+      <div class="panel"><h2>評価項目の重み</h2><div id="weights" class="weights"></div><div class="weight-total" id="weightTotal"></div>
+      <p class="muted">配点は合計100でなくても按分します。元の150社選定（成長65%・財務35%）とは別の設定です。</p></div>
+      <div class="panel"><h2>名前を付けて保存</h2><input id="presetName" type="text" maxlength="60" placeholder="例：半導体成長重視">
+      <button id="saveProfile" class="wide-btn primary">この配点を保存する</button>
+      <div id="profileNotice" role="status" class="message"></div>
+      <h3>保存済みの設定</h3><div id="savedProfiles"></div></div>
+    </section>
+
+    <section id="pane-update" class="pane hidden">
+      <h1>データ更新状況</h1>
+      <div class="panel"><h2>現在配信されているデータ</h2><div id="updateMeta"></div>
+      <button id="reloadData" class="wide-btn primary">公開済みデータを再読み込み</button></div>
+      <div class="notice">J-Quantsの一括取得・150社の再選別・正式採用・IR審査の編集はPC版で行います。この画面は配信済みデータの閲覧と再読込だけです。</div>
+      <h2>分析カテゴリの状態</h2><div class="panel"><div class="meta-row"><span>一般企業</span><b class="green">稼働中</b></div><div class="meta-row"><span>不動産</span><b class="orange">一部対応</b></div><div class="meta-row"><span>金融（銀行・証券・保険）</span><b class="red">未完成</b></div></div>
+    </section>
+
+    <section id="pane-finance" class="pane hidden">
+      <button class="back-link" data-goto="home">‹ ホーム</button>
+      <h1>金融（未完成）</h1>
+      <div class="notice danger">銀行・証券・保険は⑤-Bの専用分析が必要です。現在、点数・順位・採用判定を出す処理はありません。</div>
+      <div class="panel"><h2>予定されている分類</h2><p>⑤-B1 銀行　／　⑤-B2 証券　／　⑤-B3 保険</p><p class="muted">金融業に一般企業の自己資本比率・借入評価式を流用しません。</p></div>
+    </section>
+  </div>
+  <nav id="bottomNav" class="bottom-nav" aria-label="画面切り替え">
+    <button data-goto="home" class="active"><span>⌂</span>ホーム</button>
+    <button data-goto="ranking"><span>▥</span>銘柄分析</button>
+    <button data-goto="list"><span>☷</span>150社</button>
+    <button data-goto="sector"><span>▤</span>セクター</button>
+    <button data-goto="settings"><span>⚙</span>設定</button>
+  </nav>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
